@@ -11,8 +11,19 @@
     <title>Title</title>
 </head>
 <body>
-<div>
-    <span>openid=${openid}</span>
+<div style="width: 100%">
+    <table>
+        <tr>
+            <td><span>openid=${wxMpUser.openId}</span></td>
+            <td><span>昵称为:${wxMpUser.nickname}</span></td>
+            <td><span>性别为:${wxMpUser.sexDesc}</span></td>
+        </tr>
+        <tr>
+            <td><span>省为:${wxMpUser.province}</span></td>
+            <td><span>市为:${wxMpUser.city}</span></td>
+            <td><span>头像地址为:${wxMpUser.headImgUrl}</span></td>
+        </tr>
+    </table>
 </div>
 </body>
 </html>

@@ -2,13 +2,16 @@ package com.team.wxplatform.controller;
 
 import com.team.wxplatform.common.WechatConst;
 import com.team.wxplatform.service.CoreService;
+import com.team.wxplatform.utils.ReturnModel;
 import me.chanjar.weixin.common.api.WxConsts;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
 import me.chanjar.weixin.mp.bean.result.WxMpOAuth2AccessToken;
+import me.chanjar.weixin.mp.bean.result.WxMpUser;
 import me.chanjar.weixin.mp.config.WxMpConfigStorage;
+import me.chanjar.weixin.mp.enums.AiLangType;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -99,7 +102,7 @@ public class IndexController extends GenericController{
 
     @RequestMapping(value = "/weChatAuth")
     public String weChatAuth() {
-        String redirectUri = wxMpService.oauth2buildAuthorizationUrl(WechatConst.REDIRECT_URI, WxConsts.OAuth2Scope.SNSAPI_USERINFO, WechatConst.RETURN_URL);
+        String redirectUri = wxMpService.oauth2buildAuthorizationUrl(WechatConst.REDIRECT_URI, WxConsts.OAuth2Scope.SNSAPI_BASE, WechatConst.RETURN_URL);
         System.out.println("redirectUri={}"+redirectUri);//日志
         return "redirect:" + redirectUri;//跳转
     }
@@ -109,8 +112,10 @@ public class IndexController extends GenericController{
                            @RequestParam("state") String returnUrl,HttpServletRequest request, HttpServletResponse response) {
         //获得access token
         WxMpOAuth2AccessToken wxMpOAuth2AccessToken = new WxMpOAuth2AccessToken();
+        WxMpUser wxMpUser =null;
         try {
             wxMpOAuth2AccessToken = wxMpService.oauth2getAccessToken(code);
+            wxMpUser = this.wxMpService.getUserService().userInfo(wxMpOAuth2AccessToken.getOpenId(), AiLangType.zh_CN.toString());
         }catch (WxErrorException e){
             System.out.println("【微信网页授权】{}"+e);
         }
@@ -118,6 +123,82 @@ public class IndexController extends GenericController{
         String openId = wxMpOAuth2AccessToken.getOpenId();
         System.out.println("openId={}"+openId);
         request.setAttribute("openid",openId);
+        request.setAttribute("wxMpUser",wxMpUser);
         return returnUrl;
+    }
+
+    /**
+     * 通过openid获得基本用户信息
+     * 详情请见: http://mp.weixin.qq.com/wiki/14/bb5031008f1494a59c6f71fa0f319c66.html
+     *
+     * @param openid openid
+     * @param lang   zh_CN, zh_TW, en
+     */
+    @RequestMapping(value = "/getUserInfo")
+    public WxMpUser getUserInfo(HttpServletResponse response, @RequestParam(value = "openid") String openid, @RequestParam(value = "lang") String lang) {
+        ReturnModel returnModel = new ReturnModel();
+        WxMpUser wxMpUser = null;
+        try {
+            wxMpUser = this.wxMpService.getUserService().userInfo(openid, lang);
+            returnModel.setResult(true);
+            returnModel.setDatum(wxMpUser);
+            renderString(response, returnModel);
+        } catch (WxErrorException e) {
+            returnModel.setResult(false);
+            returnModel.setReason(e.getError().toString());
+            renderString(response, returnModel);
+            this.logger.error(e.getError().toString());
+        }
+        return wxMpUser;
+    }
+
+    /**
+     * 通过code获得基本用户信息
+     * 详情请见: http://mp.weixin.qq.com/wiki/14/bb5031008f1494a59c6f71fa0f319c66.html
+     *
+     * @param code code
+     * @param lang zh_CN, zh_TW, en
+     */
+    @RequestMapping(value = "/getOAuth2UserInfo")
+    public void getOAuth2UserInfo(HttpServletResponse response, @RequestParam(value = "code") String code, @RequestParam(value = "lang") String lang) {
+        ReturnModel returnModel = new ReturnModel();
+        WxMpOAuth2AccessToken accessToken;
+        WxMpUser wxMpUser;
+        try {
+            accessToken = this.wxMpService.oauth2getAccessToken(code);
+            wxMpUser = this.wxMpService.getUserService()
+                    .userInfo(accessToken.getOpenId(), lang);
+            returnModel.setResult(true);
+            returnModel.setDatum(wxMpUser);
+            renderString(response, returnModel);
+        } catch (WxErrorException e) {
+            returnModel.setResult(false);
+            returnModel.setReason(e.getError().toString());
+            renderString(response, returnModel);
+            this.logger.error(e.getError().toString());
+        }
+    }
+
+    /**
+     * 用code换取oauth2的openid
+     * 详情请见: http://mp.weixin.qq.com/wiki/1/8a5ce6257f1d3b2afb20f83e72b72ce9.html
+     *
+     * @param code code
+     */
+    @RequestMapping(value = "/getOpenid")
+    public void getOpenid(HttpServletResponse response, @RequestParam(value = "code") String code) {
+        ReturnModel returnModel = new ReturnModel();
+        WxMpOAuth2AccessToken accessToken;
+        try {
+            accessToken = this.wxMpService.oauth2getAccessToken(code);
+            returnModel.setResult(true);
+            returnModel.setDatum(accessToken.getOpenId());
+            renderString(response, returnModel);
+        } catch (WxErrorException e) {
+            returnModel.setResult(false);
+            returnModel.setReason(e.getError().toString());
+            renderString(response, returnModel);
+            this.logger.error(e.getError().toString());
+        }
     }
 }

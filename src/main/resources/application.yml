@@ -1,8 +1,11 @@
 #端口号与网页前缀
 server:
+  tomcat:
+    uri-encoding: utf-8
   port: 80
   servlet:
     context-path: /
+
 spring:
   ## jsp支持
   mvc:
@@ -53,4 +56,5 @@ wx:
   #公众号 AES_KEY
   aesKey:
 
-
+logging:
+  config: classpath:logback-spring.xml

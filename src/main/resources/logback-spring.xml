@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration  scan="true" scanPeriod="30 seconds">
+
+	<springProperty scope="context" name="log.path" source="scolarship.log.dir"/>
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+	    <encoder>
+	        <pattern>[%level][%d{yyyy-MM-dd HH:mm:ss}][%thread][%logger]>%msg%n</pattern>
+	    </encoder>
+	</appender>
+	<appender name="logfile"
+			  class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- rollover daily -->
+			<FileNamePattern>/opt/data/logs/wxplatform/log-%d{yyyy-MM-dd}.%i.log
+			</FileNamePattern>
+			<maxHistory>5</maxHistory>
+			<timeBasedFileNamingAndTriggeringPolicy
+					class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>10MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<encoder charset="UTF-8">
+			<pattern>%date [%thread] %-5level %logger{80} - %msg%n</pattern>
+		</encoder>
+	</appender>
+		  			
+	<root level="INFO">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="logfile"/>
+	</root>
+	 
+</configuration>
+
+
