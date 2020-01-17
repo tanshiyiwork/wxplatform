@@ -103,7 +103,7 @@ public class IndexController extends GenericController{
     @RequestMapping(value = "/weChatAuth")
     public String weChatAuth() {
         String redirectUri = wxMpService.oauth2buildAuthorizationUrl(WechatConst.REDIRECT_URI, WxConsts.OAuth2Scope.SNSAPI_BASE, WechatConst.RETURN_URL);
-        System.out.println("redirectUri={}"+redirectUri);//日志
+        this.logger.info("redirectUri={}"+redirectUri);//日志
         return "redirect:" + redirectUri;//跳转
     }
 
@@ -117,7 +117,7 @@ public class IndexController extends GenericController{
             wxMpOAuth2AccessToken = wxMpService.oauth2getAccessToken(code);
             wxMpUser = this.wxMpService.getUserService().userInfo(wxMpOAuth2AccessToken.getOpenId(), AiLangType.zh_CN.toString());
         }catch (WxErrorException e){
-            System.out.println("【微信网页授权】{}"+e);
+            this.logger.error("【微信网页授权】{}"+e);//日志
         }
         //获取openId
         String openId = wxMpOAuth2AccessToken.getOpenId();
