@@ -6,10 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.RedisConnectionUtils;
-import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.*;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -24,6 +21,9 @@ import java.util.List;
 public class RedisUtil {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 分页获取指定格式key，使用 scan 命令代替 keys 命令，在大数据量的情况下可以提高查询效率
@@ -81,4 +81,44 @@ public class RedisUtil {
     public void delete(Collection<String> keys) {
         stringRedisTemplate.delete(keys);
     }
+
+    /**
+     * String类型相关操作
+     */
+    /**
+     * 添加缓存
+     * @param key 键
+     * @param value 值
+     * @return true成功 false失败
+     */
+    public boolean set(String key,Object value) {
+        try {
+            redisTemplate.opsForValue().set(key, value);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    /**
+     * 获取缓存
+     * @param key 键
+     * @return 值
+     */
+    public Object get(String key){
+        return key==null?null:redisTemplate.opsForValue().get(key);
+    }
+    /**
+     * 递增
+     * @param key 键
+     * @return
+     */
+    public long incr(String key, long delta){
+        if(delta<0){
+            throw new RuntimeException("递增因子必须大于0");
+        }
+        return redisTemplate.opsForValue().increment(key, delta);
+    }
+
+
 }

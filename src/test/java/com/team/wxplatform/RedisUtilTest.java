@@ -1,5 +1,6 @@
 package com.team.wxplatform;
 
+import com.alibaba.fastjson.JSONObject;
 import com.team.wxplatform.utils.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -53,4 +54,22 @@ public class RedisUtilTest extends WxplatformApplicationTests{
     public void boundHashOpsDelByKey(){
         redisTemplate.boundHashOps("namehash").delete("country2");
     }
+
+    @Test
+    public void testSet(){
+        JSONObject object = new JSONObject();
+        object.put("name","xiaoming");
+        object.put("age","34");
+        object.put("sex","男");
+        object.put("number","5");
+        boolean result = redisUtil.set("obj1",object);
+        System.out.println(result);
+    }
+
+    @Test
+    public void testGet(){
+        Object result = redisUtil.get("obj1");
+        System.out.println(result);
+    }
+
 }
